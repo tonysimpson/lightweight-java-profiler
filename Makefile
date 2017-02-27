@@ -1,7 +1,6 @@
 SHELL:=/bin/bash
 UNAME:=$(shell uname | tr '[A-Z]' '[a-z]')
-
-BITS?=32
+BITS:=$(shell getconf LONG_BIT)
 ifeq ($(UNAME), darwin)
   READLINK_ARGS:=""
   PLATFORM_WARNINGS:=-Weverything -Wno-c++98-compat-pedantic -Wno-padded \
