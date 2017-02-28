@@ -7,12 +7,7 @@
 
 #include "display.h"
 
-#ifdef __APPLE__
-// See comment in Accessors class
 pthread_key_t Accessors::key_;
-#else
-__thread JNIEnv * Accessors::env_;
-#endif
 
 ASGCTType Asgct::asgct_;
 

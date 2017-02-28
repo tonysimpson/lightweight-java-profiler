@@ -3,9 +3,7 @@
 #include <jvmti.h>
 #include <jni.h>
 #include <stdint.h>
-#ifdef __APPLE__
 #include <pthread.h>
-#endif
 
 
 #ifndef GLOBALS_H
@@ -108,9 +106,6 @@ class JvmtiScopedPtr {
 // Accessors for a JNIEnv for this thread.
 class Accessors {
  public:
-#ifdef __APPLE__
-  // As of 8/2013, Darwin doesn't support __thread.  We love you,
-  // Darwin!
   static void SetCurrentJniEnv(JNIEnv *env) {
     static bool once = false;
     int err;
@@ -137,21 +132,6 @@ class Accessors {
       // Meh.
     }
   }
-#else
-  static void SetCurrentJniEnv(JNIEnv *env) {
-    env_ = env;
-  }
-
-  static JNIEnv *CurrentJniEnv() {
-    return env_;
-  }
-
-  static void Init() {
-  }
-
-  static void Destroy() {
-  }
-#endif
 
   template <class FunctionType>
   static inline FunctionType GetJvmFunction(const char *function_name) {
@@ -166,17 +146,7 @@ class Accessors {
   }
 
  private:
-#ifdef __APPLE__
   static pthread_key_t key_;
-#else
-  // This is very dangerous.  __thread is not async-safe when used in
-  // a shared library, because it calls malloc the first time a given
-  // thread accesses it.  This is unlikely to cause problems in
-  // straightforward Java apps, but a real fix involves either a fix
-  // to glibc or to the Java launcher, and casual users will have a
-    // hard time with this.
-  static __thread JNIEnv *env_;
-#endif
 };
 
 #if defined(__GNUC__) && (defined(i386) || defined(__x86_64))
