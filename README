@@ -1,0 +1,13 @@
+This is a hacked version of https://code.google.com/p/lightweight-java-profiler/ that 
+allows you to control when profiling starts in a crude way which requires recompiling.
+
+The constraints of JNI and the nature of the code make it difficult to modify the code
+to have a simple control mechanism so what is here is very much just a hack to 
+make the profiler useful for my needs.
+
+The make file has been modified so all you need to do now is `make` - BITS=64 is not
+needed
+
+To change the delay before profiling starts modify delayed_start_profiler
+
+

@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include <string>
 
@@ -11,6 +12,7 @@
 
 static Profiler *prof;
 FILE *Globals::OutFile;
+pthread_t delayed_start_profiler_thread;
 
 void JNICALL OnThreadStart(jvmtiEnv *jvmti_env, JNIEnv *jni_env,
                            jthread thread) {
@@ -53,6 +55,16 @@ void CreateJMethodIDsForClass(jvmtiEnv *jvmti, jclass klass) {
   }
 }
 
+
+void *delayed_start_profiler(void *arg1) {
+  //Modify these timeings (in seconds) to meet your needs
+  sleep(5*60);
+  prof->Start();
+  sleep(4*60);
+  prof->Stop();
+  return NULL;
+}
+
 void JNICALL OnVMInit(jvmtiEnv *jvmti, JNIEnv *jni_env, jthread thread) {
   IMPLICITLY_USE(thread);
   IMPLICITLY_USE(jni_env);
@@ -67,7 +79,9 @@ void JNICALL OnVMInit(jvmtiEnv *jvmti, JNIEnv *jni_env, jthread thread) {
     jclass klass = classList[i];
     CreateJMethodIDsForClass(jvmti, klass);
   }
-  prof->Start();
+  if(pthread_create(&delayed_start_profiler_thread, NULL, delayed_start_profiler, NULL)) {
+      fprintf(stderr, "Error creating thread\n");
+  }
 }
 
 void JNICALL OnClassPrepare(jvmtiEnv *jvmti_env, JNIEnv *jni_env,
@@ -84,8 +98,6 @@ void JNICALL OnClassPrepare(jvmtiEnv *jvmti_env, JNIEnv *jni_env,
 void JNICALL OnVMDeath(jvmtiEnv *jvmti_env, JNIEnv *jni_env) {
   IMPLICITLY_USE(jvmti_env);
   IMPLICITLY_USE(jni_env);
-
-  prof->Stop();
   prof->DumpToFile(Globals::OutFile);
 }
 
